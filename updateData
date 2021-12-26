@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+key=$(<~/cachedKey)
+
+if [ -z "$key" ]; then
+
+  echo "Inform your maxmind license key. The data can not be installed if none is informed."
+  read key
+  echo "$key" > ~/cachedKey
+
+else
+  echo "Reusing cached key $key, to remove this cache, delete the ~/cachedKey file and try again."
+fi
+
+if [ -z "$key" ]; then
+  exit
+fi
+
+mkdir temp
+
+cd temp
+curl "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City-CSV&license_key=$key&suffix=zip" > data.zip
+unzip -j -o data.zip
+cd ..
+
+mv temp/GeoLite2-City-Blocks-IPv4.csv GeoLite2-City-Blocks-IPv4.csv
+mv temp/GeoLite2-City-Blocks-IPv6.csv GeoLite2-City-Blocks-IPv6.csv
+mv temp/GeoLite2-City-Locations-en.csv GeoLite2-City-Locations-en.csv
+./compileIps.js
+./compileIpsV6.js
+./compileLocations.js
+
+cd temp
+
+curl "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=$key&suffix=zip" > data.zip
+unzip -j -o data.zip
+cd ..
+
+mv temp/GeoLite2-ASN-Blocks-IPv4.csv GeoLite2-ASN-Blocks-IPv4.csv
+mv temp/GeoLite2-ASN-Blocks-IPv6.csv GeoLite2-ASN-Blocks-IPv6.csv
+./compileASN.js
+./compileASNV6.js
+
+rm -rf temp GeoLite2-City-Blocks-IPv4.csv GeoLite2-City-Blocks-IPv6.csv GeoLite2-City-Locations-en.csv GeoLite2-ASN-Blocks-IPv4.csv GeoLite2-ASN-Blocks-IPv6.csv
