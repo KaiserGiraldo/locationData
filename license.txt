@@ -1,4 +1,4 @@
-MIT Public License 
+MIT Public License
 
 Copyright (c) 2015 Stephen Lynx
 
